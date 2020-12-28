@@ -153,34 +153,34 @@ void Player::FillField()
         cout << "Enter information about four decked ship (int x, int y, bool ishorizontal)";
         cin >> x >> y >> ishorizontal;
     } while (!isGoodShip(x, y, ishorizontal, ShipType::four));
-    SetShip(x, y, ishorizontal, ShipType::four);
+    SetShip(x - 1, y - 1, ishorizontal, ShipType::four);
 
     for (int i = 0; i < 2; ++i)
     {
         do
         {
-            cout << "Enter information about three decked ship (int x, int y, bool ishorizontal)";
+            cout << "Enter information about №" << i << "three decked ship (int x, int y, bool ishorizontal)";
             cin >> x >> y >> ishorizontal;
-        } while (!isGoodShip(x, y, ishorizontal, ShipType::three));
-        SetShip(x, y, ishorizontal, ShipType::three);
+        } while (!isGoodShip(x - 1, y - 1, ishorizontal, ShipType::three));
+        SetShip(x - 1, y - 1, ishorizontal, ShipType::three);
     }
     for (int i = 0; i < 3; ++i)
     {
         do
         {
-            cout << "Enter information about two decked ship (int x, int y, bool ishorizontal)";
+            cout << "Enter information about  №" << i << "two decked ship (int x, int y, bool ishorizontal)";
             cin >> x >> y >> ishorizontal;
-        } while (!isGoodShip(x, y, ishorizontal, ShipType::two));
-        SetShip(x, y, ishorizontal, ShipType::two);
+        } while (!isGoodShip(x - 1, y - 1, ishorizontal, ShipType::two));
+        SetShip(x - 1, y - 1, ishorizontal, ShipType::two);
     }
     for (int i = 0; i < 4; ++i)
     {
         do
         {
-            cout << "Enter information about one decked ship (int x, int y, bool ishorizontal)";
+            cout << "Enter information about  №" << i << "one decked ship (int x, int y, bool ishorizontal)";
             cin >> x >> y >> ishorizontal;
-        } while (!isGoodShip(x, y, ishorizontal, ShipType::one));
-        SetShip(x, y, ishorizontal, ShipType::one);
+        } while (!isGoodShip(x - 1, y - 1, ishorizontal, ShipType::one));
+        SetShip(x - 1, y - 1, ishorizontal, ShipType::one);
     }
 }
 
@@ -188,7 +188,8 @@ pair<int, int> ConsolePlayer::nextStep()
 {
     cout << "Enter int x int y" << endl;
 
-    int x = 0, y = 0;
+    int x, y;
+    cin >> x >> y;
     return make_pair(x - 1, y - 1);
 }
 
@@ -197,9 +198,9 @@ ConsolePlayer::ConsolePlayer()
     string str;
     do
     {
-        cout << "Do you want to set the ships random? yes/no";
+        cout << "Do you want to set the ships random? yes/no \n";
         cin >> str;
-    } while (str != "yes" || str != "no");
+    } while (str != "yes" && str != "no");
 
     if (str == "yes")
         FillFieldRandom();
@@ -290,8 +291,6 @@ pair<int, int> OptionalPlayer::nextStep()
         lastPoint = make_pair(lastSuccessPoints[lastSuccessPoints.size() - 1].first, lastSuccessPoints[lastSuccessPoints.size() - 1].second - 1);
         break;
     }
-    if (lastPoint.first > 9 || lastPoint.first < 0 || lastPoint.second < 0 || lastPoint.second > 9)
-        successOnLastStep = 0;
 
     return lastPoint;
 }
@@ -322,7 +321,9 @@ int Judge::step(int x, int y, Player* player)
     }
     if (player->field[y][x] == PLAYER_SHIP)
     {
+        
         player->field[y][x] = DAMAGED;
+
         for (int i = 1; y - i > -1 && player->field[y - i][x] > 0; i++)
         {
             if (player->field[y - i][x] == PLAYER_SHIP)
@@ -347,6 +348,37 @@ int Judge::step(int x, int y, Player* player)
                 return DAMAGED;
         }
 
+        int vectorY = 0,
+            vectorX = 0;
+
+        if (y - 1 >= 0 && player->field[y - 1][x] == DAMAGED)
+            vectorY = -1;
+        else if (y + 1 < 10 && player->field[y + 1][x] == DAMAGED)
+            vectorY = 1;
+        else if (x - 1 >= 0 && player->field[y][x - 1] == DAMAGED)
+            vectorX = -1;
+        else if (x + 1 < 10 && player->field[y][x + 1] == DAMAGED)
+            vectorX = 1;
+        
+        do 
+        {
+            for (int i = -1; i < 2; i++)
+            {
+                if (y + i < 10 && y + i >= 0)
+                {
+                    for (int j = -1; j < 2; j++)
+                    {
+                        if (x + j < 10 && x + j >= 0 && player->field[y + i][x + j] == EMPTY_FIELD)
+                        {
+                            player->field[y + i][x + j] = MISSED;
+                        }
+                    }
+                }
+            }
+            y += vectorY;
+            x += vectorX;
+        } while ((vectorY != 0 || vectorX != 0) && y < 10 && x < 10 && y >= 0 && x >= 0 && player->field[y][x] == DAMAGED);
+
         return DESTROYED;
     }
 }
@@ -364,15 +396,19 @@ void execute(int rounds, PlayerType firstType, PlayerType secondType)
         Judge judge;
 
         bool motion = 1;
-        bool isGoodStep;
         while (judge.player1destroyed != 10 && judge.player2destroyed != 10)
         {
             pair<int, int> step;
             do
             {
                 step = (motion ? first : second)->nextStep();
-                isGoodStep = !judge.isGoodStep(step.first, step.second, (motion ? second : first));
-            } while (isGoodStep);
+                if (!judge.isGoodStep(step.first, step.second, (motion ? second : first)))
+                {
+                    (motion ? first : second)->successOnLastStep = 0;
+                    continue;
+                }
+                break;
+            } while (true);
 
             switch (judge.step(step.first, step.second, (motion ? second : first)))
             {
@@ -400,11 +436,14 @@ void execute(int rounds, PlayerType firstType, PlayerType secondType)
             scoreFirst++;
         else
             scoreSecond++;
+
+        cout << "First player score: " << scoreFirst << endl;
+        cout << "Second player score: " << scoreSecond << endl;
     }
     if (scoreFirst > scoreSecond)
-        cout << "First player win";
+        cout << "The First player wins";
     else if (scoreFirst < scoreSecond)
-        cout << "Second player win";
+        cout << "The Second player wins";
     else
         cout << "Equal points";
 }

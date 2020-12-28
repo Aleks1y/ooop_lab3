@@ -1,6 +1,5 @@
 #include "Header.h"
 
-
 void Player::SetShip(int x, int y, bool horizontal, ShipType type)
 {
     int length = (int)type;

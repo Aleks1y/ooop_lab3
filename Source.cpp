@@ -16,73 +16,25 @@ bool Player::isGoodShip(int x, int y, bool horizontal, ShipType type)
 {
     int length = (int)type;
 
-    if (horizontal)
+    for (size_t k = 0; k < length; k++)
     {
-        if (!(x >= 0 && x + length - 1 < 10) || !(y >= 0 && y <= 9))
-            return false;
-        else
-            for (int i = 0; i < length; ++i)
+        for (int i = -1; i < 2; i++)
+        {
+            if (y + i < 10 && y + i >= 0)
             {
-                if (field[y][x + i] == PLAYER_SHIP)
-                    return false;
-                if (x + i - 1 > -1 && field[y][x + i - 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x + i + 1 < 10 && field[y][x + i + 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x + i - 1 > -1 && y - 1 > -1 && field[y - 1][x + i - 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x + i - 1 > -1 && y + 1 < 10 && field[y + 1][x + i - 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x + i + 1 < 10 && y - 1 > -1 && field[y - 1][x + i + 1] == PLAYER_SHIP)
-                    return false;
-
-                if (y + i + 1 < 10 && field[y + 1][x + i] == PLAYER_SHIP)
-                    return false;
-
-                if (y - 1 > -1 && field[y - 1][x + i] == PLAYER_SHIP)
-                    return false;
-
-                if (x + i + 1 < 10 && y + 1 < 10 && field[y + 1][x + i + 1] == PLAYER_SHIP)
-                    return false;
+                for (int j = -1; j < 2; j++)
+                {
+                    if (x + j < 10 && x + j >= 0 && field[y + i][x + j] != EMPTY_FIELD)
+                    {
+                        return false;
+                    }
+                }
             }
-    }
-    else
-    {
-        if (!(y >= 0 && y + length - 1 < 10) || !(x >= 0 && x <= 9))
+        }
+        x += (int)horizontal;
+        y += (int)(!horizontal);
+        if (x > 9 || y > 9)
             return false;
-        else
-            for (int i = 0; i < length; ++i)
-            {
-                if (field[y + i][x] > 0)
-                    return false;
-                if (x - 1 > -1 && field[y + i][x - 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x + 1 < 10 && field[y + i][x + 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x - 1 > -1 && y + i - 1 > -1 && field[y + i - 1][x - 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x - 1 > -1 && y + i + 1 < 10 && field[y + i + 1][x - 1] == PLAYER_SHIP)
-                    return false;
-
-                if (x + 1 < 10 && y + i - 1 > -1 && field[y + i - 1][x + 1] == PLAYER_SHIP)
-                    return false;
-
-                if (y + i + 1 < 10 && field[y + i + 1][x] == PLAYER_SHIP)
-                    return false;
-
-                if (y + i - 1 > -1 && field[y + i - 1][x] == PLAYER_SHIP)
-                    return false;
-
-                if (x + 1 < 10 && y + i + 1 < 10 && field[y + i + 1][x + 1] == PLAYER_SHIP)
-                    return false;
-            }
     }
     return true;
 }

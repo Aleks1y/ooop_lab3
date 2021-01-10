@@ -2,8 +2,6 @@
 #include "optionparser.h"
 #include "Header.h"
 
-using namespace std;
-
 struct Arg : public option::Arg
 {
     static void printError(const char* msg1, const option::Option& opt, const char* msg2)
@@ -40,7 +38,7 @@ enum optionIndex
 const option::Descriptor usage[] = {
         {UNKNOWN, 0, "",  "",       Arg::Unknown,  "USAGE: example_arg [options]\n\n"
                                                    "Options:"},
-        {HELP,    0, "",  "help",   Arg::None,     "  \t--help  \tYou can choose the type of two players and the number of rounds in the series. Total player types 3:\n\t\t\tRandom - random player. Absolutely random AI;\n\t\t\tOptional - AI with if else c: ;\n\t\t\tInteractive - it's are you;) .\t"},
+        {HELP,    0, "",  "help",   Arg::None,     "  \t--help  \tYou can choose the type of two players and the number of rounds in the series. Total player types 3:\n\t\t\tRandom - random player. Absolutely random AI;\n\t\t\tOptimal - AI with if else c: ;\n\t\t\t Interactive - it's are you;) .\t"},
         {FIRST,   0, "f", "first",  Arg::Optional, "  -f[<arg>], \t--first[=<arg>]"
                                                    "  \tType of first player. Default is Random."},
         {SECOND,  0, "s", "second", Arg::Optional, "  -s[<arg>], \t--second[=<arg>]"
@@ -57,11 +55,11 @@ int main(int argc, char* argv[])
 #ifdef __GNUC__
     option::Option options[stats.options_max], buffer[stats.buffer_max];
 #else
-    option::Option* options = (option::Option*)calloc(stats.options_max, sizeof(option::Option));
-    option::Option* buffer = (option::Option*)calloc(stats.buffer_max, sizeof(option::Option));
+    std::vector<option::Option> options(stats.options_max);
+    std::vector<option::Option> buffer(stats.buffer_max);
 #endif
 
-    option::Parser parse(usage, argc, argv, options, buffer);
+    option::Parser parse(usage, argc, argv, options.data(), buffer.data());
     if (parse.error())
         return 1;
 
@@ -101,8 +99,8 @@ int main(int argc, char* argv[])
     {
         if (((string)"Random") == options[FIRST].arg)
             f = PlayerType::Random;
-        else if (((string)"Optional") == options[FIRST].arg)
-            f = PlayerType::Optional;
+        else if (((string)"Optimal") == options[FIRST].arg)
+            f = PlayerType::Optimal;
         else if (((string)"Interactive") == options[FIRST].arg)
             f = PlayerType::Interactive;
         else
@@ -116,8 +114,8 @@ int main(int argc, char* argv[])
     {
         if (((string)"Random") == options[SECOND].arg)
             s = PlayerType::Random;
-        else if (((string)"Optional") == options[SECOND].arg)
-            s = PlayerType::Optional;
+        else if (((string)"Optimal") == options[SECOND].arg)
+            s = PlayerType::Optimal;
         else if (((string)"Interactive") == options[SECOND].arg)
             s = PlayerType::Interactive;
         else
@@ -126,5 +124,12 @@ int main(int argc, char* argv[])
             return 0;
         }
     }
-    execute(count, f, s);
+    try
+    {
+        execute(count, f, s);
+    }
+    catch (const char* ex)
+    {
+        cout << ex;
+    }
 }
